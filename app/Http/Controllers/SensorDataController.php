@@ -32,27 +32,38 @@ class SensorDataController extends Controller
     public function show(Request $request)
     {
       // Crear una consulta inicial para SensorData
-            // Crear una consulta inicial para SensorData
-        $query = SensorData::query();
+    $query = SensorData::query();
 
-        // Filtrar por los parámetros si están presentes
-        if ($request->has('sensor')) {
-            $query->where('sensor', 'like', '%'.$request->query('sensor').'%');
-        }
+    // Filtrar por los parámetros si están presentes
+    if ($request->has('sensor')) {
+        $query->where('sensor', 'like', '%'.$request->query('sensor').'%');
+    }
 
-        if ($request->has('device')) {
-            $query->where('device', $request->query('device'));
-        }
+    if ($request->has('device')) {
+        $query->where('device', $request->query('device'));
+    }
 
-        if ($request->has('unit')) {
-            $query->where('unit', $request->query('unit'));
-        }
+    if ($request->has('unit')) {
+        $query->where('unit', $request->query('unit'));
+    }
 
-        // Ordenar los resultados por 'created_at' de más reciente a más antiguo
-        $sensorData = $query->orderBy('created_at', 'desc')->get();
+    // Ordenar los resultados por 'created_at' de más reciente a más antiguo
+    $query->orderBy('created_at', 'desc');
 
-        // Retornar la respuesta en formato JSON
-        return response()->json($sensorData);
+    // Aplicar un límite a los resultados si se proporciona el parámetro 'limit'
+    if ($request->has('limit')) {
+        $limit = intval($request->query('limit')); // Convertir a entero por seguridad
+        $query->limit($limit);
+    }
+
+    // Ejecutar la consulta y obtener los resultados
+    $sensorData = $query->get();
+
+    // Invertir el orden de los resultados para mostrar el más antiguo primero
+    $sensorData = $sensorData->reverse()->values();
+
+    // Retornar la respuesta en formato JSON
+    return response()->json($sensorData);
     }
 
     /**
